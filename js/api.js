@@ -3,7 +3,7 @@ const API = {
   // Detect base path: GitHub Pages → server, otherwise local/proxy
   base: (function() {
     if (window.location.hostname.includes('github.io')) {
-      return 'http://92.4.172.126/cantieri/api';
+      return 'https://f850d6fc571398.lhr.life/api';
     }
     let path = window.location.pathname;
     if (path.includes('.')) path = path.substring(0, path.lastIndexOf('/'));
