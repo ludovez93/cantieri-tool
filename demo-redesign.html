@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#08080f">
+<title>Cantieri Tool — Demo Redesign</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-void: #05050a;
+  --bg-deep: #08080f;
+  --bg-base: #0c0c14;
+  --bg-surface: #111118;
+  --bg-elevated: #18181f;
+  --bg-glass: rgba(255,255,255,0.035);
+  --bg-glass-hover: rgba(255,255,255,0.06);
+  --border: rgba(255,255,255,0.06);
+  --border-light: rgba(255,255,255,0.08);
+  --text-primary: #edf0f5;
+  --text-secondary: #7a8299;
+  --text-muted: #464d5e;
+  --accent: #00D4FF;
+  --accent-glow: rgba(0,212,255,0.2);
+  --accent-glow-strong: rgba(0,212,255,0.35);
+  --red: #ff3b5c;
+  --red-glow: rgba(255,59,92,0.15);
+  --green: #00e676;
+  --green-glow: rgba(0,230,118,0.15);
+  --yellow: #ffd600;
+  --yellow-glow: rgba(255,214,0,0.12);
+  --orange: #ff8a00;
+  --font-title: 'Syne', sans-serif;
+  --font-body: 'Space Grotesk', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --transition: 200ms cubic-bezier(0.4,0,0.2,1);
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body {
+  height:100%; background:var(--bg-deep); color:var(--text-primary);
+  font-family:var(--font-body); font-size:15px; line-height:1.5;
+  overflow-x:hidden; -webkit-font-smoothing:antialiased;
+}
+body::before {
+  content:''; position:fixed; inset:0;
+  background:
+    repeating-linear-gradient(45deg, transparent, transparent 60px, rgba(255,255,255,0.012) 60px, rgba(255,255,255,0.012) 61px),
+    radial-gradient(ellipse 600px 400px at 50% -5%, rgba(0,212,255,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 400px 400px at 80% 100%, rgba(0,212,255,0.03) 0%, transparent 60%);
+  pointer-events:none; z-index:0;
+}
+.container { position:relative; z-index:1; max-width:420px; margin:0 auto; padding:20px 16px 100px; }
+
+/* Demo nav */
+.demo-nav { display:flex; gap:4px; margin-bottom:28px; background:var(--bg-surface); border-radius:var(--radius-md); padding:4px; }
+.demo-nav button {
+  flex:1; padding:10px 6px; border:none; background:none; color:var(--text-muted);
+  font-family:var(--font-body); font-size:0.7rem; font-weight:600; cursor:pointer;
+  border-radius:var(--radius-sm); transition:all var(--transition); text-transform:uppercase; letter-spacing:0.04em;
+}
+.demo-nav button.active { background:var(--accent); color:#050510; }
+.page { display:none; }
+.page.active { display:block; }
+
+/* ═══ SHARED ═══ */
+.section-label {
+  font-family:var(--font-title); font-size:0.65rem; font-weight:600;
+  text-transform:uppercase; letter-spacing:0.12em; color:var(--text-muted); margin-bottom:14px;
+}
+.page-header { display:flex; align-items:center; gap:12px; margin-bottom:24px; }
+.back-btn {
+  width:36px; height:36px; display:flex; align-items:center; justify-content:center;
+  border:1px solid var(--border-light); border-radius:var(--radius-sm);
+  background:var(--bg-glass); color:var(--text-secondary); cursor:pointer; transition:all var(--transition); flex-shrink:0;
+}
+.back-btn:hover { border-color:var(--accent); color:var(--accent); }
+.page-header h1 { font-family:var(--font-title); font-weight:700; font-size:1.4rem; flex:1; letter-spacing:-0.02em; }
+.btn-cta {
+  display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:18px 24px;
+  border:none; border-radius:var(--radius-md); background:linear-gradient(135deg, #00D4FF, #0099dd);
+  color:#050510; font-family:var(--font-body); font-weight:700; font-size:0.9rem;
+  text-transform:uppercase; letter-spacing:0.1em; cursor:pointer;
+  box-shadow:0 0 30px var(--accent-glow); transition:all var(--transition);
+}
+.btn-cta:hover { box-shadow:0 0 50px var(--accent-glow-strong); transform:translateY(-2px); }
+@keyframes fadeSlideUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+.anim { animation:fadeSlideUp 0.4s cubic-bezier(0.4,0,0.2,1) both; }
+.d1{animation-delay:0ms}.d2{animation-delay:60ms}.d3{animation-delay:120ms}.d4{animation-delay:180ms}
+.d5{animation-delay:240ms}.d6{animation-delay:300ms}.d7{animation-delay:360ms}.d8{animation-delay:420ms}
+
+/* ═══════════════════════════════
+   CALENDARIO MESE — shared
+   ═══════════════════════════════ */
+.cal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.cal-month { font-family:var(--font-title); font-weight:700; font-size:1rem; }
+.cal-nav { display:flex; gap:6px; }
+.cal-nav button {
+  width:28px; height:28px; border:1px solid var(--border-light); border-radius:6px;
+  background:none; color:var(--text-muted); cursor:pointer; display:flex; align-items:center; justify-content:center;
+  font-size:0.75rem; transition:all var(--transition);
+}
+.cal-nav button:hover { border-color:var(--accent); color:var(--accent); }
+.cal-weekdays {
+  display:grid; grid-template-columns:repeat(7,1fr); gap:3px; margin-bottom:6px;
+}
+.cal-weekday {
+  text-align:center; font-size:0.5rem; font-weight:300; color:var(--text-muted);
+  text-transform:uppercase; letter-spacing:0.08em; padding:4px 0;
+}
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; }
+.cal-cell {
+  aspect-ratio:1; border-radius:6px; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; font-family:var(--font-mono);
+  font-size:0.7rem; font-weight:500; position:relative; transition:all var(--transition);
+}
+.cal-cell-empty { background:none; }
+.cal-cell-future { background:var(--bg-surface); color:var(--text-muted); border:1px dashed rgba(255,255,255,0.06); }
+.cal-cell-today { background:var(--bg-surface); color:var(--accent); border:1px solid rgba(0,212,255,0.3); box-shadow:0 0 8px rgba(0,212,255,0.1); }
+.cal-cell-done { background:rgba(0,230,118,0.12); color:var(--green); }
+.cal-cell-done-multi { background:rgba(0,230,118,0.2); color:var(--green); font-weight:700; }
+.cal-cell-skip { background:rgba(255,214,0,0.1); color:var(--yellow); }
+.cal-cell-absent { background:var(--bg-surface); color:var(--text-muted); opacity:0.4; }
+.cal-cell-nowork { background:none; color:rgba(255,255,255,0.08); }
+.cal-cell-count {
+  position:absolute; bottom:1px; font-size:0.4rem; font-weight:700;
+  color:inherit; opacity:0.7;
+}
+/* Legenda */
+.cal-legend { display:flex; gap:12px; margin-top:10px; flex-wrap:wrap; }
+.cal-legend-item { display:flex; align-items:center; gap:4px; font-size:0.55rem; color:var(--text-muted); }
+.cal-legend-dot { width:8px; height:8px; border-radius:3px; flex-shrink:0; }
+
+/* ═══════════════════════════════
+   PAGE: DASHBOARD
+   ═══════════════════════════════ */
+.dash-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; }
+.dash-label { font-family:var(--font-title); font-size:0.7rem; font-weight:600; text-transform:uppercase; letter-spacing:0.12em; color:var(--text-muted); }
+.dash-date { font-size:0.75rem; color:var(--text-secondary); font-weight:300; margin-top:2px; }
+.btn-exit {
+  padding:6px 14px; border:1px solid var(--border-light); border-radius:20px; background:none;
+  color:var(--text-muted); font-family:var(--font-body); font-size:0.7rem; font-weight:500; cursor:pointer; transition:all var(--transition);
+}
+.btn-exit:hover { border-color:var(--accent); color:var(--accent); }
+
+.hero-stats {
+  display:grid; grid-template-columns:1fr 1fr 1fr; gap:1px;
+  background:var(--border); border-radius:var(--radius-lg); overflow:hidden; margin-bottom:24px; position:relative;
+}
+.hero-stats::before {
+  content:''; position:absolute; inset:-1px; border-radius:var(--radius-lg); padding:1px;
+  background:linear-gradient(135deg, rgba(0,212,255,0.3), rgba(0,212,255,0.05), rgba(0,212,255,0.15));
+  -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none; z-index:1;
+}
+.hero-stat { background:var(--bg-base); padding:20px 12px; text-align:center; }
+.hero-stat-value {
+  font-family:var(--font-mono); font-weight:800; font-size:2.6rem; line-height:1;
+  color:var(--accent); text-shadow:0 0 30px var(--accent-glow), 0 0 60px rgba(0,212,255,0.08);
+}
+.hero-stat-label { font-size:0.55rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.1em; margin-top:8px; font-weight:300; }
+
+.cantieri-list { display:flex; flex-direction:column; gap:6px; }
+.card-row {
+  display:flex; align-items:center; gap:12px; padding:14px 16px;
+  background:var(--bg-glass); border:1px solid var(--border-light); border-radius:var(--radius-md);
+  cursor:pointer; transition:all var(--transition); position:relative;
+}
+.card-row:hover { background:var(--bg-glass-hover); transform:translateY(-2px); box-shadow:0 0 30px rgba(0,212,255,0.04), 0 8px 30px rgba(0,0,0,0.3); }
+.card-row-difetti .cr-name::before {
+  content:''; display:inline-block; width:6px; height:6px; background:var(--yellow);
+  border-radius:50%; margin-right:6px; box-shadow:0 0 6px var(--yellow-glow); vertical-align:middle;
+}
+.cr-info { flex:1; min-width:0; }
+.cr-name { font-weight:700; font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cr-progress { margin-top:6px; height:3px; background:var(--bg-elevated); border-radius:2px; overflow:hidden; }
+.cr-progress-fill { height:100%; border-radius:2px; background:linear-gradient(90deg, var(--accent), #0088ff); box-shadow:0 0 6px var(--accent-glow); }
+.cr-right { text-align:right; flex-shrink:0; }
+.cr-badge {
+  display:inline-block; padding:2px 8px; border-radius:12px; font-family:var(--font-mono);
+  font-size:0.6rem; font-weight:600; text-transform:uppercase; letter-spacing:0.04em;
+}
+.cr-badge-ok { background:var(--green-glow); color:var(--green); }
+.cr-badge-dif { background:var(--yellow-glow); color:var(--yellow); }
+.cr-badge-urg { background:var(--red-glow); color:var(--red); }
+.cr-deadline { font-family:var(--font-mono); font-size:0.8rem; font-weight:700; margin-top:4px; }
+.cr-deadline-critical { color:var(--red); text-shadow:0 0 10px var(--red-glow); }
+.cr-deadline-warning { color:var(--orange); }
+.cr-deadline-ok { color:var(--text-muted); }
+.cr-stats { display:flex; gap:10px; margin-top:4px; font-size:0.7rem; color:var(--text-muted); }
+.cr-stats span { font-family:var(--font-mono); font-weight:500; color:var(--text-secondary); }
+
+/* ═══════════════════════════════
+   PAGE: DETTAGLIO
+   ═══════════════════════════════ */
+.page-header .badge-inline {
+  padding:4px 10px; border-radius:12px; font-size:0.6rem; font-family:var(--font-mono);
+  font-weight:600; text-transform:uppercase; background:var(--red-glow); color:var(--red); flex-shrink:0;
+}
+.stat-ticker {
+  display:flex; background:var(--bg-glass); border:1px solid var(--border-light);
+  border-radius:var(--radius-lg); overflow:hidden; margin-bottom:20px; position:relative;
+}
+.stat-ticker::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, var(--accent), #0088ff, var(--accent)); }
+.stat-ticker-item { flex:1; text-align:center; padding:16px 8px; border-right:1px solid var(--border); }
+.stat-ticker-item:last-child { border-right:none; }
+.stat-ticker-value { font-family:var(--font-mono); font-weight:800; font-size:1.8rem; line-height:1; }
+.stat-ticker-label { font-size:0.5rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.1em; margin-top:6px; font-weight:300; }
+
+.hero-row { display:flex; gap:10px; margin-bottom:20px; }
+.hero-card {
+  flex:1; padding:14px 16px; background:var(--bg-glass); border:1px solid var(--border-light);
+  border-radius:var(--radius-md); position:relative; overflow:hidden;
+}
+.hero-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, var(--accent), transparent); }
+.hero-card-urgent { background:rgba(255,59,92,0.06); border-color:rgba(255,59,92,0.2); }
+.hero-card-urgent::before { background:linear-gradient(90deg, var(--red), transparent); }
+.hero-card-label { font-size:0.55rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.1em; font-weight:300; }
+.hero-card-value { font-family:var(--font-mono); font-weight:700; font-size:1.3rem; margin-top:4px; }
+.hero-card-urgent .hero-card-value { color:var(--red); text-shadow:0 0 16px var(--red-glow); }
+
+.card-terminal {
+  background:var(--bg-void); border:1px solid var(--border); border-left:2px solid var(--accent);
+  border-radius:var(--radius-md); padding:14px 16px; margin-bottom:20px;
+}
+.term-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.03); }
+.term-row:last-child { border-bottom:none; }
+.term-label { font-size:0.75rem; color:var(--text-muted); font-weight:300; }
+.term-value { font-family:var(--font-mono); font-size:0.85rem; font-weight:500; color:var(--text-secondary); }
+
+.timeline { position:relative; padding-left:24px; margin-bottom:24px; }
+.timeline::before {
+  content:''; position:absolute; left:6px; top:4px; bottom:4px; width:2px;
+  background:linear-gradient(to bottom, var(--accent), rgba(0,212,255,0.1)); border-radius:1px;
+}
+.timeline-item { position:relative; padding:8px 0; display:flex; justify-content:space-between; align-items:center; }
+.timeline-dot { position:absolute; left:-20px; top:50%; transform:translateY(-50%); width:10px; height:10px; border-radius:50%; border:2px solid var(--bg-deep); }
+.timeline-dot-green { background:var(--green); box-shadow:0 0 8px var(--green-glow); }
+.timeline-dot-yellow { background:var(--yellow); box-shadow:0 0 6px var(--yellow-glow); }
+.timeline-dot-muted { background:var(--text-muted); }
+.tl-date { font-size:0.85rem; font-weight:500; }
+.tl-status { font-size:0.75rem; }
+.tl-status-done { color:var(--green); font-weight:600; }
+.tl-status-skip { color:var(--yellow); }
+.tl-status-plan { color:var(--text-muted); font-weight:300; }
+
+.difetto-card {
+  display:flex; align-items:center; justify-content:space-between; padding:14px 16px;
+  background:var(--bg-surface); border:1px solid rgba(255,59,92,0.12); border-radius:var(--radius-md);
+  margin-bottom:8px; box-shadow:0 0 16px rgba(255,59,92,0.04); transition:all var(--transition);
+}
+.difetto-card:hover { box-shadow:0 0 24px rgba(255,59,92,0.1); transform:translateY(-1px); }
+.dif-km { font-family:var(--font-mono); font-weight:700; font-size:1.1rem; }
+.dif-meta { font-size:0.7rem; color:var(--text-muted); margin-top:2px; }
+.dif-badge { padding:3px 10px; border-radius:12px; background:var(--red-glow); color:var(--red); font-family:var(--font-mono); font-size:0.65rem; font-weight:700; }
+
+.meteo-strip { display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; margin-bottom:24px; }
+.meteo-card { flex-shrink:0; width:72px; padding:12px 8px; background:var(--bg-glass); border:1px solid var(--border-light); border-radius:var(--radius-md); text-align:center; }
+.meteo-day-name { font-size:0.6rem; color:var(--text-muted); text-transform:uppercase; font-weight:300; letter-spacing:0.06em; }
+.meteo-icon { font-size:1.6rem; margin:6px 0; }
+.meteo-temp { font-family:var(--font-mono); font-size:0.85rem; font-weight:800; }
+.meteo-rain-bar { margin:6px auto 0; width:4px; border-radius:2px; background:var(--accent); box-shadow:0 0 4px var(--accent-glow); }
+
+/* ═══════════════════════════════
+   PAGE: PANORAMICA
+   ═══════════════════════════════ */
+.pano-summary {
+  display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:24px;
+}
+.pano-stat {
+  background:var(--bg-glass); border:1px solid var(--border-light); border-radius:var(--radius-md);
+  padding:12px 8px; text-align:center;
+}
+.pano-stat-value { font-family:var(--font-mono); font-weight:800; font-size:1.6rem; line-height:1; }
+.pano-stat-label { font-size:0.5rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; margin-top:4px; font-weight:300; }
+.pano-cantiere-row {
+  display:flex; align-items:center; gap:10px; padding:10px 0;
+  border-bottom:1px solid var(--border); font-size:0.8rem;
+}
+.pano-cantiere-row:last-child { border-bottom:none; }
+.pano-cantiere-name { flex:1; font-weight:600; font-size:0.85rem; }
+.pano-cantiere-count { font-family:var(--font-mono); font-weight:700; color:var(--accent); }
+.pano-cantiere-bar { width:60px; height:4px; background:var(--bg-elevated); border-radius:2px; overflow:hidden; }
+.pano-cantiere-bar-fill { height:100%; border-radius:2px; background:linear-gradient(90deg, var(--accent), #0088ff); }
+
+/* ═══════════════════════════════
+   PAGE: LOG NOTTE
+   ═══════════════════════════════ */
+.toggle-bar { display:flex; border-bottom:1px solid var(--border); margin-bottom:24px; }
+.toggle-btn {
+  flex:1; padding:12px 16px; border:none; background:none; color:var(--text-muted);
+  font-family:var(--font-body); font-size:0.85rem; font-weight:400; cursor:pointer; position:relative; transition:all var(--transition);
+}
+.toggle-btn.active { color:var(--accent); font-weight:700; }
+.toggle-btn.active::after {
+  content:''; position:absolute; bottom:-1px; left:16px; right:16px; height:2px;
+  background:linear-gradient(90deg, #00D4FF, #0088ff); border-radius:2px; box-shadow:0 0 8px var(--accent-glow);
+}
+.input-label { display:block; font-size:0.6rem; font-weight:300; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px; }
+.input-field {
+  width:100%; padding:12px 16px; background:var(--bg-base); border:1px solid var(--border-light);
+  border-radius:var(--radius-md); color:var(--text-primary); font-family:var(--font-body);
+  font-size:0.95rem; outline:none; transition:all var(--transition);
+}
+.input-field:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow); }
+.textarea-terminal {
+  width:100%; min-height:160px; padding:14px 16px; background:var(--bg-void);
+  border:1px solid var(--border-light); border-left:2px solid var(--accent); border-radius:var(--radius-md);
+  color:var(--text-primary); font-family:var(--font-mono); font-size:0.85rem; line-height:1.6;
+  outline:none; resize:vertical; transition:all var(--transition);
+}
+.textarea-terminal:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow); background:var(--bg-base); }
+.result-card {
+  padding:20px; background:var(--bg-glass); border:1px solid var(--border-light);
+  border-radius:var(--radius-lg); margin-top:16px; position:relative; overflow:hidden;
+}
+.result-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, var(--accent), #0088ff, transparent); }
+.result-big { display:flex; align-items:baseline; gap:8px; margin-bottom:12px; }
+.result-big-num { font-family:var(--font-mono); font-weight:800; font-size:2.2rem; color:var(--accent); text-shadow:0 0 20px var(--accent-glow); line-height:1; }
+.result-big-label { font-size:0.8rem; color:var(--text-secondary); }
+.result-row { display:flex; align-items:center; gap:8px; padding:6px 0; font-size:0.85rem; border-top:1px solid var(--border); }
+
+.mb16 { margin-bottom:16px; }
+.mb20 { margin-bottom:20px; }
+.mb24 { margin-bottom:24px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="demo-nav">
+    <button class="active" onclick="showPage('dashboard',this)">Dashboard</button>
+    <button onclick="showPage('detail',this)">Dettaglio</button>
+    <button onclick="showPage('panoramica',this)">Panoramica</button>
+    <button onclick="showPage('log',this)">Log Notte</button>
+  </div>
+
+  <!-- ═════ DASHBOARD ═════ -->
+  <div id="page-dashboard" class="page active">
+    <div class="dash-header anim d1">
+      <div>
+        <div class="dash-label">Cantieri</div>
+        <div class="dash-date">Ludovico &middot; Mer 9 apr</div>
+      </div>
+      <button class="btn-exit">Esci</button>
+    </div>
+
+    <div class="hero-stats anim d2">
+      <div class="hero-stat">
+        <div class="hero-stat-value">6</div>
+        <div class="hero-stat-label">Attivi</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-value">221</div>
+        <div class="hero-stat-label">Saldature</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-value" style="color:var(--red);text-shadow:0 0 20px var(--red-glow)">1g</div>
+        <div class="hero-stat-label">Deadline</div>
+      </div>
+    </div>
+
+    <!-- Mini calendario mese in dashboard -->
+    <div class="anim d3 mb24">
+      <div class="cal-header">
+        <div class="cal-month">Aprile 2026</div>
+        <div class="cal-nav"><button>&larr;</button><button>&rarr;</button></div>
+      </div>
+      <div class="cal-weekdays">
+        <div class="cal-weekday">Lun</div><div class="cal-weekday">Mar</div><div class="cal-weekday">Mer</div>
+        <div class="cal-weekday">Gio</div><div class="cal-weekday">Ven</div><div class="cal-weekday">Sab</div><div class="cal-weekday">Dom</div>
+      </div>
+      <div class="cal-grid">
+        <!-- Apr 2026: starts Wednesday -->
+        <div class="cal-cell cal-cell-empty"></div>
+        <div class="cal-cell cal-cell-empty"></div>
+        <div class="cal-cell cal-cell-done">1<span class="cal-cell-count">2</span></div>
+        <div class="cal-cell cal-cell-done-multi">2<span class="cal-cell-count">3</span></div>
+        <div class="cal-cell cal-cell-done">3<span class="cal-cell-count">1</span></div>
+        <div class="cal-cell cal-cell-nowork">4</div>
+        <div class="cal-cell cal-cell-nowork">5</div>
+        <div class="cal-cell cal-cell-absent">6</div>
+        <div class="cal-cell cal-cell-skip">7</div>
+        <div class="cal-cell cal-cell-done-multi">8<span class="cal-cell-count">2</span></div>
+        <div class="cal-cell cal-cell-today">9</div>
+        <div class="cal-cell cal-cell-future">10</div>
+        <div class="cal-cell cal-cell-future">11</div>
+        <div class="cal-cell cal-cell-nowork">12</div>
+        <div class="cal-cell cal-cell-nowork">13</div>
+        <div class="cal-cell cal-cell-future">14</div>
+        <div class="cal-cell cal-cell-future">15</div>
+        <div class="cal-cell cal-cell-future">16</div>
+        <div class="cal-cell cal-cell-future">17</div>
+        <div class="cal-cell cal-cell-future">18</div>
+        <div class="cal-cell cal-cell-nowork">19</div>
+        <div class="cal-cell cal-cell-nowork">20</div>
+        <div class="cal-cell cal-cell-future">21</div>
+        <div class="cal-cell cal-cell-future">22</div>
+        <div class="cal-cell cal-cell-future">23</div>
+        <div class="cal-cell cal-cell-future">24</div>
+        <div class="cal-cell cal-cell-future">25</div>
+        <div class="cal-cell cal-cell-nowork">26</div>
+        <div class="cal-cell cal-cell-nowork">27</div>
+        <div class="cal-cell cal-cell-future">28</div>
+        <div class="cal-cell cal-cell-future">29</div>
+        <div class="cal-cell cal-cell-future">30</div>
+      </div>
+      <div class="cal-legend">
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--green)"></div>Fatto</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--yellow)"></div>Saltata</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--text-muted);opacity:0.4"></div>Assente</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="border:1px dashed var(--text-muted);background:none"></div>Programmata</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--accent);border:1px solid rgba(0,212,255,0.3)"></div>Oggi</div>
+      </div>
+    </div>
+
+    <div class="cantieri-list">
+      <div class="card-row card-row-difetti anim d4">
+        <div class="cr-info">
+          <div class="cr-name">Empoli - San Miniato</div>
+          <div class="cr-stats"><span>0</span> sald. &middot; <span>0</span> notti</div>
+        </div>
+        <div class="cr-right">
+          <div class="cr-badge cr-badge-dif">1 DIF</div>
+        </div>
+      </div>
+      <div class="card-row card-row-difetti anim d5">
+        <div class="cr-info">
+          <div class="cr-name">La Spezia - Arcola</div>
+          <div class="cr-progress"><div class="cr-progress-fill" style="width:65%"></div></div>
+          <div class="cr-stats"><span>221</span> sald. &middot; <span>5</span> notti</div>
+        </div>
+        <div class="cr-right">
+          <div class="cr-badge cr-badge-dif">5 DIF</div>
+          <div class="cr-deadline cr-deadline-critical">1g</div>
+        </div>
+      </div>
+      <div class="card-row anim d6">
+        <div class="cr-info">
+          <div class="cr-name">Brescia - Verona</div>
+          <div class="cr-stats"><span>0</span> sald. &middot; <span>0</span> notti</div>
+        </div>
+        <div class="cr-right">
+          <div class="cr-badge cr-badge-ok">OK</div>
+          <div class="cr-deadline cr-deadline-critical">1g</div>
+        </div>
+      </div>
+      <div class="card-row anim d7">
+        <div class="cr-info">
+          <div class="cr-name">Genova</div>
+          <div class="cr-stats"><span>0</span> sald. &middot; <span>0</span> notti</div>
+        </div>
+        <div class="cr-right">
+          <div class="cr-badge cr-badge-ok">OK</div>
+          <div class="cr-deadline cr-deadline-warning">6g</div>
+        </div>
+      </div>
+      <div class="card-row anim d8">
+        <div class="cr-info">
+          <div class="cr-name">Chiusi-Montallese</div>
+          <div class="cr-stats"><span>0</span> sald. &middot; <span>0</span> notti</div>
+        </div>
+        <div class="cr-right">
+          <div class="cr-badge cr-badge-ok">OK</div>
+          <div class="cr-deadline cr-deadline-ok">13g</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════ DETTAGLIO ═════ -->
+  <div id="page-detail" class="page">
+    <div class="page-header anim d1">
+      <button class="back-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <h1>La Spezia - Arcola</h1>
+      <span class="badge-inline">URG</span>
+    </div>
+
+    <div class="stat-ticker anim d2">
+      <div class="stat-ticker-item"><div class="stat-ticker-value" style="color:var(--green)">5</div><div class="stat-ticker-label">Notti</div></div>
+      <div class="stat-ticker-item"><div class="stat-ticker-value" style="color:var(--accent)">221</div><div class="stat-ticker-label">Saldature</div></div>
+      <div class="stat-ticker-item"><div class="stat-ticker-value" style="color:var(--red)">5</div><div class="stat-ticker-label">Difetti</div></div>
+      <div class="stat-ticker-item"><div class="stat-ticker-value" style="color:var(--yellow)">0</div><div class="stat-ticker-label">Saltate</div></div>
+    </div>
+
+    <div class="hero-row anim d3">
+      <div class="hero-card hero-card-urgent">
+        <div class="hero-card-label">Deadline</div>
+        <div class="hero-card-value">10/04</div>
+      </div>
+      <div class="hero-card">
+        <div class="hero-card-label">Ultimo km</div>
+        <div class="hero-card-value" style="font-size:0.85rem;">P: 168+200</div>
+      </div>
+    </div>
+
+    <!-- Calendario cantiere -->
+    <div class="anim d4 mb24">
+      <div class="section-label">Aprile 2026</div>
+      <div class="cal-weekdays">
+        <div class="cal-weekday">L</div><div class="cal-weekday">M</div><div class="cal-weekday">M</div>
+        <div class="cal-weekday">G</div><div class="cal-weekday">V</div><div class="cal-weekday">S</div><div class="cal-weekday">D</div>
+      </div>
+      <div class="cal-grid">
+        <div class="cal-cell cal-cell-empty"></div>
+        <div class="cal-cell cal-cell-empty"></div>
+        <div class="cal-cell cal-cell-done">1</div>
+        <div class="cal-cell cal-cell-done">2</div>
+        <div class="cal-cell cal-cell-done">3</div>
+        <div class="cal-cell cal-cell-nowork">4</div>
+        <div class="cal-cell cal-cell-nowork">5</div>
+        <div class="cal-cell cal-cell-absent">6</div>
+        <div class="cal-cell cal-cell-skip">7</div>
+        <div class="cal-cell cal-cell-done">8</div>
+        <div class="cal-cell cal-cell-today">9</div>
+        <div class="cal-cell cal-cell-future">10</div>
+        <div class="cal-cell cal-cell-future">11</div>
+        <div class="cal-cell cal-cell-nowork">12</div>
+        <div class="cal-cell cal-cell-nowork">13</div>
+        <div class="cal-cell cal-cell-future">14</div>
+        <div class="cal-cell cal-cell-future">15</div>
+        <div class="cal-cell cal-cell-future">16</div>
+        <div class="cal-cell cal-cell-future">17</div>
+        <div class="cal-cell cal-cell-future">18</div>
+        <div class="cal-cell cal-cell-nowork">19</div>
+        <div class="cal-cell cal-cell-nowork">20</div>
+        <div class="cal-cell cal-cell-future">21</div>
+        <div class="cal-cell cal-cell-future">22</div>
+        <div class="cal-cell cal-cell-future">23</div>
+        <div class="cal-cell cal-cell-future">24</div>
+        <div class="cal-cell cal-cell-future">25</div>
+        <div class="cal-cell cal-cell-nowork">26</div>
+        <div class="cal-cell cal-cell-nowork">27</div>
+        <div class="cal-cell cal-cell-future">28</div>
+        <div class="cal-cell cal-cell-future">29</div>
+        <div class="cal-cell cal-cell-future">30</div>
+      </div>
+    </div>
+
+    <div class="card-terminal anim d5">
+      <div class="term-row"><span class="term-label">Ultima notte</span><span class="term-value">8&rarr;9/04 &bull; 42 sald.</span></div>
+      <div class="term-row"><span class="term-label">Tipo</span><span class="term-value">Notturno</span></div>
+      <div class="term-row"><span class="term-label">Interruzione</span><span class="term-value">22:30-05:00</span></div>
+    </div>
+
+    <div class="section-label anim d5">Meteo</div>
+    <div class="meteo-strip anim d5">
+      <div class="meteo-card"><div class="meteo-day-name">Gio</div><div class="meteo-icon">☀️</div><div class="meteo-temp">18°</div><div class="meteo-rain-bar" style="height:0"></div></div>
+      <div class="meteo-card"><div class="meteo-day-name">Ven</div><div class="meteo-icon">⛅</div><div class="meteo-temp">16°</div><div class="meteo-rain-bar" style="height:0"></div></div>
+      <div class="meteo-card"><div class="meteo-day-name">Sab</div><div class="meteo-icon">🌧️</div><div class="meteo-temp">13°</div><div class="meteo-rain-bar" style="height:14px"></div></div>
+      <div class="meteo-card"><div class="meteo-day-name">Dom</div><div class="meteo-icon">🌧️</div><div class="meteo-temp">12°</div><div class="meteo-rain-bar" style="height:22px"></div></div>
+      <div class="meteo-card"><div class="meteo-day-name">Lun</div><div class="meteo-icon">⛅</div><div class="meteo-temp">15°</div><div class="meteo-rain-bar" style="height:4px"></div></div>
+    </div>
+
+    <div class="section-label anim d6">Difetti aperti (5)</div>
+    <div class="anim d6">
+      <div class="difetto-card"><div><div class="dif-km">165+640 SX</div><div class="dif-meta">08/04</div></div><div class="dif-badge">4212</div></div>
+      <div class="difetto-card"><div><div class="dif-km">166+132 DX</div><div class="dif-meta">08/04</div></div><div class="dif-badge">4112</div></div>
+    </div>
+
+    <div class="section-label anim d7" style="margin-top:24px">Agenda</div>
+    <div class="timeline anim d7">
+      <div class="timeline-item"><div class="timeline-dot timeline-dot-muted"></div><span class="tl-date">9&rarr;10/04</span><span class="tl-status tl-status-plan">🌙 Programmata</span></div>
+      <div class="timeline-item"><div class="timeline-dot timeline-dot-green"></div><span class="tl-date">8&rarr;9/04</span><span class="tl-status tl-status-done">✅ 42 sald.</span></div>
+      <div class="timeline-item"><div class="timeline-dot timeline-dot-green"></div><span class="tl-date">7&rarr;8/04</span><span class="tl-status tl-status-done">✅ 38 sald.</span></div>
+      <div class="timeline-item"><div class="timeline-dot timeline-dot-yellow"></div><span class="tl-date">Lun 7/04</span><span class="tl-status tl-status-skip">🌧️ Pioggia</span></div>
+    </div>
+
+    <button class="btn-cta anim d8">LOG NOTTE</button>
+  </div>
+
+  <!-- ═════ PANORAMICA ═════ -->
+  <div id="page-panoramica" class="page">
+    <div class="page-header anim d1">
+      <h1>Panoramica</h1>
+    </div>
+
+    <!-- Sommario mese -->
+    <div class="pano-summary anim d2">
+      <div class="pano-stat">
+        <div class="pano-stat-value" style="color:var(--green)">8</div>
+        <div class="pano-stat-label">Notti fatte</div>
+      </div>
+      <div class="pano-stat">
+        <div class="pano-stat-value" style="color:var(--accent)">221</div>
+        <div class="pano-stat-label">Saldature</div>
+      </div>
+      <div class="pano-stat">
+        <div class="pano-stat-value" style="color:var(--yellow)">1</div>
+        <div class="pano-stat-label">Saltate</div>
+      </div>
+    </div>
+
+    <!-- Calendario grande -->
+    <div class="anim d3 mb24">
+      <div class="cal-header">
+        <div class="cal-month">Aprile 2026</div>
+        <div class="cal-nav"><button>&larr;</button><button>&rarr;</button></div>
+      </div>
+      <div class="cal-weekdays">
+        <div class="cal-weekday">Lun</div><div class="cal-weekday">Mar</div><div class="cal-weekday">Mer</div>
+        <div class="cal-weekday">Gio</div><div class="cal-weekday">Ven</div><div class="cal-weekday">Sab</div><div class="cal-weekday">Dom</div>
+      </div>
+      <div class="cal-grid">
+        <div class="cal-cell cal-cell-empty"></div>
+        <div class="cal-cell cal-cell-empty"></div>
+        <div class="cal-cell cal-cell-done">1<span class="cal-cell-count">2</span></div>
+        <div class="cal-cell cal-cell-done-multi">2<span class="cal-cell-count">3</span></div>
+        <div class="cal-cell cal-cell-done">3<span class="cal-cell-count">1</span></div>
+        <div class="cal-cell cal-cell-nowork">4</div>
+        <div class="cal-cell cal-cell-nowork">5</div>
+        <div class="cal-cell cal-cell-absent">6</div>
+        <div class="cal-cell cal-cell-skip">7</div>
+        <div class="cal-cell cal-cell-done-multi">8<span class="cal-cell-count">2</span></div>
+        <div class="cal-cell cal-cell-today">9</div>
+        <div class="cal-cell cal-cell-future">10</div>
+        <div class="cal-cell cal-cell-future">11</div>
+        <div class="cal-cell cal-cell-nowork">12</div>
+        <div class="cal-cell cal-cell-nowork">13</div>
+        <div class="cal-cell cal-cell-future">14</div>
+        <div class="cal-cell cal-cell-future">15</div>
+        <div class="cal-cell cal-cell-future">16</div>
+        <div class="cal-cell cal-cell-future">17</div>
+        <div class="cal-cell cal-cell-future">18</div>
+        <div class="cal-cell cal-cell-nowork">19</div>
+        <div class="cal-cell cal-cell-nowork">20</div>
+        <div class="cal-cell cal-cell-future">21</div>
+        <div class="cal-cell cal-cell-future">22</div>
+        <div class="cal-cell cal-cell-future">23</div>
+        <div class="cal-cell cal-cell-future">24</div>
+        <div class="cal-cell cal-cell-future">25</div>
+        <div class="cal-cell cal-cell-nowork">26</div>
+        <div class="cal-cell cal-cell-nowork">27</div>
+        <div class="cal-cell cal-cell-future">28</div>
+        <div class="cal-cell cal-cell-future">29</div>
+        <div class="cal-cell cal-cell-future">30</div>
+      </div>
+      <div class="cal-legend">
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--green)"></div>Fatto</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(0,230,118,0.35)"></div>Multi</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--yellow)"></div>Saltata</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--text-muted);opacity:0.4"></div>Assente</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="border:1px dashed var(--text-muted);background:none"></div>Futura</div>
+      </div>
+    </div>
+
+    <!-- Dettaglio per cantiere -->
+    <div class="section-label anim d4">Per cantiere</div>
+    <div class="anim d4 mb24" style="background:var(--bg-glass);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:16px;">
+      <div class="pano-cantiere-row">
+        <div class="pano-cantiere-name">La Spezia - Arcola</div>
+        <div class="pano-cantiere-count">5</div>
+        <div class="pano-cantiere-bar"><div class="pano-cantiere-bar-fill" style="width:100%"></div></div>
+      </div>
+      <div class="pano-cantiere-row">
+        <div class="pano-cantiere-name">Empoli - San Miniato</div>
+        <div class="pano-cantiere-count">2</div>
+        <div class="pano-cantiere-bar"><div class="pano-cantiere-bar-fill" style="width:40%"></div></div>
+      </div>
+      <div class="pano-cantiere-row">
+        <div class="pano-cantiere-name">Brescia - Verona</div>
+        <div class="pano-cantiere-count">1</div>
+        <div class="pano-cantiere-bar"><div class="pano-cantiere-bar-fill" style="width:20%"></div></div>
+      </div>
+      <div class="pano-cantiere-row">
+        <div class="pano-cantiere-name">Genova</div>
+        <div class="pano-cantiere-count">0</div>
+        <div class="pano-cantiere-bar"><div class="pano-cantiere-bar-fill" style="width:0%"></div></div>
+      </div>
+      <div class="pano-cantiere-row">
+        <div class="pano-cantiere-name">Chiusi-Montallese</div>
+        <div class="pano-cantiere-count">0</div>
+        <div class="pano-cantiere-bar"><div class="pano-cantiere-bar-fill" style="width:0%"></div></div>
+      </div>
+      <div class="pano-cantiere-row">
+        <div class="pano-cantiere-name">Merano - Malles</div>
+        <div class="pano-cantiere-count">0</div>
+        <div class="pano-cantiere-bar"><div class="pano-cantiere-bar-fill" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- Prossime scadenze -->
+    <div class="section-label anim d5">Prossime deadline</div>
+    <div class="anim d5">
+      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+        <span style="font-weight:600;font-size:0.9rem">Brescia - Verona</span>
+        <span style="font-family:var(--font-mono);font-weight:700;font-size:0.85rem;color:var(--red);text-shadow:0 0 10px var(--red-glow)">10/04 &mdash; 1g</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+        <span style="font-weight:600;font-size:0.9rem">La Spezia - Arcola</span>
+        <span style="font-family:var(--font-mono);font-weight:700;font-size:0.85rem;color:var(--red);text-shadow:0 0 10px var(--red-glow)">10/04 &mdash; 1g</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+        <span style="font-weight:600;font-size:0.9rem">Genova</span>
+        <span style="font-family:var(--font-mono);font-weight:700;font-size:0.85rem;color:var(--orange)">15/04 &mdash; 6g</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:10px 0;">
+        <span style="font-weight:600;font-size:0.9rem">Chiusi-Montallese</span>
+        <span style="font-family:var(--font-mono);font-weight:700;font-size:0.85rem;color:var(--text-muted)">22/04 &mdash; 13g</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════ LOG NOTTE ═════ -->
+  <div id="page-log" class="page">
+    <div class="page-header anim d1">
+      <button class="back-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <h1>Log Notte</h1>
+    </div>
+
+    <div class="toggle-bar anim d2">
+      <button class="toggle-btn active">Lista saldature</button>
+      <button class="toggle-btn">Riepilogo</button>
+    </div>
+
+    <div class="mb16 anim d3">
+      <label class="input-label">Cantiere</label>
+      <select class="input-field"><option>La Spezia - Arcola</option></select>
+    </div>
+    <div class="mb16 anim d4">
+      <label class="input-label">Data notte</label>
+      <input type="date" class="input-field" value="2026-04-09">
+    </div>
+    <div class="mb16 anim d5">
+      <label class="input-label">Incolla lista saldature</label>
+      <textarea class="textarea-terminal" placeholder="Incolla qui la lista...">165+640 SX
+166+132 DX 4112
+167+200 DX ALL
+167+890 SX
+168+100 DX</textarea>
+    </div>
+
+    <div class="result-card anim d6">
+      <div class="result-big">
+        <div class="result-big-num">5</div>
+        <div class="result-big-label">saldature riconosciute</div>
+      </div>
+      <div class="result-row" style="color:var(--red)">🔴 <strong>1</strong>&nbsp;difetto trovato: 166+132 DX — cod. 4112</div>
+      <div class="result-row" style="color:var(--green)">✅ 1 allineamento (non contato)</div>
+    </div>
+
+    <button class="btn-cta anim d7" style="margin-top:20px">SALVA NOTTE</button>
+  </div>
+</div>
+
+<script>
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.demo-nav button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('page-' + id).querySelectorAll('.anim').forEach(el => {
+    el.style.animation = 'none'; el.offsetHeight; el.style.animation = '';
+  });
+}
+</script>
+</body>
+</html>
