@@ -106,34 +106,65 @@ body::before {
 }
 .cal-nav button:hover { border-color:var(--accent); color:var(--accent); }
 .cal-weekdays {
-  display:grid; grid-template-columns:repeat(7,1fr); gap:3px; margin-bottom:6px;
+  display:grid; grid-template-columns:repeat(7,1fr); gap:3px; margin-bottom:4px;
 }
 .cal-weekday {
-  text-align:center; font-size:0.5rem; font-weight:300; color:var(--text-muted);
-  text-transform:uppercase; letter-spacing:0.08em; padding:4px 0;
+  text-align:center; font-size:0.55rem; font-weight:400; color:var(--text-muted);
+  text-transform:uppercase; letter-spacing:0.06em; padding:4px 0;
 }
 .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; }
 .cal-cell {
-  aspect-ratio:1; border-radius:6px; display:flex; flex-direction:column;
-  align-items:center; justify-content:center; font-family:var(--font-mono);
-  font-size:0.7rem; font-weight:500; position:relative; transition:all var(--transition);
+  min-height:48px; border-radius:6px; display:flex; flex-direction:column;
+  align-items:stretch; padding:4px 5px; font-family:var(--font-mono);
+  font-size:0.65rem; font-weight:500; position:relative; transition:all var(--transition);
+  cursor:pointer;
 }
-.cal-cell-empty { background:none; }
-.cal-cell-future { background:var(--bg-surface); color:var(--text-muted); border:1px dashed rgba(255,255,255,0.06); }
-.cal-cell-today { background:var(--bg-surface); color:var(--accent); border:1px solid rgba(0,212,255,0.3); box-shadow:0 0 8px rgba(0,212,255,0.1); }
-.cal-cell-done { background:rgba(0,230,118,0.12); color:var(--green); }
-.cal-cell-done-multi { background:rgba(0,230,118,0.2); color:var(--green); font-weight:700; }
-.cal-cell-skip { background:rgba(255,214,0,0.1); color:var(--yellow); }
-.cal-cell-absent { background:var(--bg-surface); color:var(--text-muted); opacity:0.4; }
-.cal-cell-nowork { background:none; color:rgba(255,255,255,0.08); }
-.cal-cell-count {
-  position:absolute; bottom:1px; font-size:0.4rem; font-weight:700;
-  color:inherit; opacity:0.7;
+.cal-cell:active { transform:scale(0.95); }
+.cal-cell-day { font-size:0.6rem; font-weight:400; opacity:0.6; }
+.cal-cell-body { flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:2px; }
+.cal-cell-num { font-size:1.1rem; font-weight:800; line-height:1; }
+.cal-cell-bars { display:flex; gap:2px; justify-content:center; margin-top:auto; padding-top:3px; }
+.cal-cell-bar { width:8px; height:3px; border-radius:1px; }
+
+.cal-cell-empty { background:none; min-height:0; cursor:default; }
+.cal-cell-future { background:var(--bg-surface); color:var(--text-muted); border:1px dashed rgba(255,255,255,0.08); }
+.cal-cell-future .cal-cell-day { opacity:0.4; }
+.cal-cell-today {
+  background:rgba(0,212,255,0.08); color:var(--accent);
+  border:2px solid rgba(0,212,255,0.4); box-shadow:0 0 12px rgba(0,212,255,0.15);
 }
+.cal-cell-today .cal-cell-day { color:var(--accent); opacity:1; }
+.cal-cell-done { background:rgba(0,230,118,0.1); color:var(--green); }
+.cal-cell-done .cal-cell-num { color:var(--green); text-shadow:0 0 8px var(--green-glow); }
+.cal-cell-done-multi { background:rgba(0,230,118,0.18); color:var(--green); }
+.cal-cell-done-multi .cal-cell-num { color:var(--green); font-size:1.2rem; text-shadow:0 0 12px var(--green-glow); }
+.cal-cell-skip {
+  background:rgba(255,214,0,0.12); color:var(--yellow);
+  border:1px solid rgba(255,214,0,0.15);
+}
+.cal-cell-skip .cal-cell-num { color:var(--yellow); }
+.cal-cell-absent { background:rgba(255,255,255,0.02); color:var(--text-muted); opacity:0.45; }
+.cal-cell-nowork { background:none; color:rgba(255,255,255,0.06); cursor:default; min-height:48px; }
+.cal-cell-nowork .cal-cell-day { opacity:0.3; }
+
 /* Legenda */
-.cal-legend { display:flex; gap:12px; margin-top:10px; flex-wrap:wrap; }
-.cal-legend-item { display:flex; align-items:center; gap:4px; font-size:0.55rem; color:var(--text-muted); }
-.cal-legend-dot { width:8px; height:8px; border-radius:3px; flex-shrink:0; }
+.cal-legend { display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
+.cal-legend-item { display:flex; align-items:center; gap:5px; font-size:0.6rem; color:var(--text-secondary); }
+.cal-legend-dot { width:10px; height:10px; border-radius:4px; flex-shrink:0; }
+
+/* Tooltip on tap */
+.cal-tooltip {
+  display:none; position:fixed; z-index:200;
+  background:var(--bg-elevated); border:1px solid var(--border-light);
+  border-radius:var(--radius-md); padding:12px 16px;
+  box-shadow:0 8px 30px rgba(0,0,0,0.5); max-width:260px;
+  font-size:0.8rem; line-height:1.6;
+}
+.cal-tooltip.show { display:block; }
+.cal-tooltip-title { font-weight:700; margin-bottom:4px; font-size:0.85rem; }
+.cal-tooltip-row { display:flex; justify-content:space-between; gap:12px; }
+.cal-tooltip-cant { color:var(--text-secondary); }
+.cal-tooltip-val { font-family:var(--font-mono); font-weight:700; color:var(--accent); }
 
 /* ═══════════════════════════════
    PAGE: DASHBOARD
@@ -374,47 +405,80 @@ body::before {
         <div class="cal-weekday">Lun</div><div class="cal-weekday">Mar</div><div class="cal-weekday">Mer</div>
         <div class="cal-weekday">Gio</div><div class="cal-weekday">Ven</div><div class="cal-weekday">Sab</div><div class="cal-weekday">Dom</div>
       </div>
-      <div class="cal-grid">
-        <!-- Apr 2026: starts Wednesday -->
+      <div class="cal-grid" id="cal-dash">
         <div class="cal-cell cal-cell-empty"></div>
         <div class="cal-cell cal-cell-empty"></div>
-        <div class="cal-cell cal-cell-done">1<span class="cal-cell-count">2</span></div>
-        <div class="cal-cell cal-cell-done-multi">2<span class="cal-cell-count">3</span></div>
-        <div class="cal-cell cal-cell-done">3<span class="cal-cell-count">1</span></div>
-        <div class="cal-cell cal-cell-nowork">4</div>
-        <div class="cal-cell cal-cell-nowork">5</div>
-        <div class="cal-cell cal-cell-absent">6</div>
-        <div class="cal-cell cal-cell-skip">7</div>
-        <div class="cal-cell cal-cell-done-multi">8<span class="cal-cell-count">2</span></div>
-        <div class="cal-cell cal-cell-today">9</div>
-        <div class="cal-cell cal-cell-future">10</div>
-        <div class="cal-cell cal-cell-future">11</div>
-        <div class="cal-cell cal-cell-nowork">12</div>
-        <div class="cal-cell cal-cell-nowork">13</div>
-        <div class="cal-cell cal-cell-future">14</div>
-        <div class="cal-cell cal-cell-future">15</div>
-        <div class="cal-cell cal-cell-future">16</div>
-        <div class="cal-cell cal-cell-future">17</div>
-        <div class="cal-cell cal-cell-future">18</div>
-        <div class="cal-cell cal-cell-nowork">19</div>
-        <div class="cal-cell cal-cell-nowork">20</div>
-        <div class="cal-cell cal-cell-future">21</div>
-        <div class="cal-cell cal-cell-future">22</div>
-        <div class="cal-cell cal-cell-future">23</div>
-        <div class="cal-cell cal-cell-future">24</div>
-        <div class="cal-cell cal-cell-future">25</div>
-        <div class="cal-cell cal-cell-nowork">26</div>
-        <div class="cal-cell cal-cell-nowork">27</div>
-        <div class="cal-cell cal-cell-future">28</div>
-        <div class="cal-cell cal-cell-future">29</div>
-        <div class="cal-cell cal-cell-future">30</div>
+        <!-- 1: 2 notti (Spezia+Empoli) -->
+        <div class="cal-cell cal-cell-done" onclick="showTip(event,'Mer 1/04',['La Spezia: 45 sald.','Empoli: 32 sald.'])">
+          <div class="cal-cell-day">1</div>
+          <div class="cal-cell-body"><div class="cal-cell-num">2</div></div>
+          <div class="cal-cell-bars"><div class="cal-cell-bar" style="background:var(--accent)"></div><div class="cal-cell-bar" style="background:var(--green)"></div></div>
+        </div>
+        <!-- 2: 3 notti -->
+        <div class="cal-cell cal-cell-done-multi" onclick="showTip(event,'Gio 2/04',['La Spezia: 48 sald.','Empoli: 40 sald.','Brescia: 12 sald.'])">
+          <div class="cal-cell-day">2</div>
+          <div class="cal-cell-body"><div class="cal-cell-num">3</div></div>
+          <div class="cal-cell-bars"><div class="cal-cell-bar" style="background:var(--accent)"></div><div class="cal-cell-bar" style="background:var(--green)"></div><div class="cal-cell-bar" style="background:var(--orange)"></div></div>
+        </div>
+        <!-- 3: 1 notte -->
+        <div class="cal-cell cal-cell-done" onclick="showTip(event,'Ven 3/04',['La Spezia: 42 sald.'])">
+          <div class="cal-cell-day">3</div>
+          <div class="cal-cell-body"><div class="cal-cell-num">1</div></div>
+          <div class="cal-cell-bars"><div class="cal-cell-bar" style="background:var(--accent)"></div></div>
+        </div>
+        <!-- 4-5 weekend -->
+        <div class="cal-cell cal-cell-nowork"><div class="cal-cell-day">4</div></div>
+        <div class="cal-cell cal-cell-nowork"><div class="cal-cell-day">5</div></div>
+        <!-- 6 assente -->
+        <div class="cal-cell cal-cell-absent">
+          <div class="cal-cell-day">6</div>
+          <div class="cal-cell-body"><div style="font-size:0.6rem;opacity:0.6">—</div></div>
+        </div>
+        <!-- 7 saltata -->
+        <div class="cal-cell cal-cell-skip" onclick="showTip(event,'Mar 7/04',['Saltata: pioggia'])">
+          <div class="cal-cell-day">7</div>
+          <div class="cal-cell-body"><div style="font-size:0.9rem">⚠️</div></div>
+        </div>
+        <!-- 8: 2 notti -->
+        <div class="cal-cell cal-cell-done-multi" onclick="showTip(event,'Mer 8/04',['La Spezia: 42 sald.','Empoli: 35 sald.'])">
+          <div class="cal-cell-day">8</div>
+          <div class="cal-cell-body"><div class="cal-cell-num">2</div></div>
+          <div class="cal-cell-bars"><div class="cal-cell-bar" style="background:var(--accent)"></div><div class="cal-cell-bar" style="background:var(--green)"></div></div>
+        </div>
+        <!-- 9 oggi -->
+        <div class="cal-cell cal-cell-today">
+          <div class="cal-cell-day">9</div>
+          <div class="cal-cell-body"><div style="font-size:0.6rem;font-weight:600;color:var(--accent)">OGGI</div></div>
+        </div>
+        <!-- 10-11 future -->
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">10</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">11</div></div>
+        <div class="cal-cell cal-cell-nowork"><div class="cal-cell-day">12</div></div>
+        <div class="cal-cell cal-cell-nowork"><div class="cal-cell-day">13</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">14</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">15</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">16</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">17</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">18</div></div>
+        <div class="cal-cell cal-cell-nowork"><div class="cal-cell-day">19</div></div>
+        <div class="cal-cell cal-cell-nowork"><div class="cal-cell-day">20</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">21</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">22</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">23</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">24</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">25</div></div>
+        <div class="cal-cell cal-cell-nowork"><div class="cal-cell-day">26</div></div>
+        <div class="cal-cell cal-cell-nowork"><div class="cal-cell-day">27</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">28</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">29</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">30</div></div>
       </div>
       <div class="cal-legend">
-        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--green)"></div>Fatto</div>
-        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--yellow)"></div>Saltata</div>
-        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--text-muted);opacity:0.4"></div>Assente</div>
-        <div class="cal-legend-item"><div class="cal-legend-dot" style="border:1px dashed var(--text-muted);background:none"></div>Programmata</div>
-        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--accent);border:1px solid rgba(0,212,255,0.3)"></div>Oggi</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(0,230,118,0.15)"></div>Fatto</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(255,214,0,0.15);border:1px solid rgba(255,214,0,0.2)"></div>Saltata</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(255,255,255,0.03)"></div>Assente</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="border:1px dashed rgba(255,255,255,0.1);background:none"></div>Futura</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(0,212,255,0.1);border:2px solid rgba(0,212,255,0.4)"></div>Oggi</div>
       </div>
     </div>
 
@@ -498,7 +562,7 @@ body::before {
       </div>
     </div>
 
-    <!-- Calendario cantiere -->
+    <!-- Calendario cantiere (singolo — no barre multi, solo stato) -->
     <div class="anim d4 mb24">
       <div class="section-label">Aprile 2026</div>
       <div class="cal-weekdays">
@@ -508,36 +572,44 @@ body::before {
       <div class="cal-grid">
         <div class="cal-cell cal-cell-empty"></div>
         <div class="cal-cell cal-cell-empty"></div>
-        <div class="cal-cell cal-cell-done">1</div>
-        <div class="cal-cell cal-cell-done">2</div>
-        <div class="cal-cell cal-cell-done">3</div>
-        <div class="cal-cell cal-cell-nowork">4</div>
-        <div class="cal-cell cal-cell-nowork">5</div>
-        <div class="cal-cell cal-cell-absent">6</div>
-        <div class="cal-cell cal-cell-skip">7</div>
-        <div class="cal-cell cal-cell-done">8</div>
-        <div class="cal-cell cal-cell-today">9</div>
-        <div class="cal-cell cal-cell-future">10</div>
-        <div class="cal-cell cal-cell-future">11</div>
-        <div class="cal-cell cal-cell-nowork">12</div>
-        <div class="cal-cell cal-cell-nowork">13</div>
-        <div class="cal-cell cal-cell-future">14</div>
-        <div class="cal-cell cal-cell-future">15</div>
-        <div class="cal-cell cal-cell-future">16</div>
-        <div class="cal-cell cal-cell-future">17</div>
-        <div class="cal-cell cal-cell-future">18</div>
-        <div class="cal-cell cal-cell-nowork">19</div>
-        <div class="cal-cell cal-cell-nowork">20</div>
-        <div class="cal-cell cal-cell-future">21</div>
-        <div class="cal-cell cal-cell-future">22</div>
-        <div class="cal-cell cal-cell-future">23</div>
-        <div class="cal-cell cal-cell-future">24</div>
-        <div class="cal-cell cal-cell-future">25</div>
-        <div class="cal-cell cal-cell-nowork">26</div>
-        <div class="cal-cell cal-cell-nowork">27</div>
-        <div class="cal-cell cal-cell-future">28</div>
-        <div class="cal-cell cal-cell-future">29</div>
-        <div class="cal-cell cal-cell-future">30</div>
+        <div class="cal-cell cal-cell-done" onclick="showTip(event,'1/04',['45 saldature'])">
+          <div class="cal-cell-day">1</div><div class="cal-cell-body"><div class="cal-cell-num" style="color:var(--green)">45</div></div>
+        </div>
+        <div class="cal-cell cal-cell-done" onclick="showTip(event,'2/04',['48 saldature'])">
+          <div class="cal-cell-day">2</div><div class="cal-cell-body"><div class="cal-cell-num" style="color:var(--green)">48</div></div>
+        </div>
+        <div class="cal-cell cal-cell-done" onclick="showTip(event,'3/04',['42 saldature'])">
+          <div class="cal-cell-day">3</div><div class="cal-cell-body"><div class="cal-cell-num" style="color:var(--green)">42</div></div>
+        </div>
+        <div class="cal-cell cal-cell-nowork"><div class="cal-cell-day">4</div></div>
+        <div class="cal-cell cal-cell-nowork"><div class="cal-cell-day">5</div></div>
+        <div class="cal-cell cal-cell-absent"><div class="cal-cell-day">6</div><div class="cal-cell-body"><div style="font-size:0.6rem;opacity:0.6">—</div></div></div>
+        <div class="cal-cell cal-cell-skip"><div class="cal-cell-day">7</div><div class="cal-cell-body"><div style="font-size:0.9rem">⚠️</div></div></div>
+        <div class="cal-cell cal-cell-done" onclick="showTip(event,'8/04',['42 saldature'])">
+          <div class="cal-cell-day">8</div><div class="cal-cell-body"><div class="cal-cell-num" style="color:var(--green)">42</div></div>
+        </div>
+        <div class="cal-cell cal-cell-today"><div class="cal-cell-day">9</div><div class="cal-cell-body"><div style="font-size:0.6rem;font-weight:600;color:var(--accent)">OGGI</div></div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">10</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">11</div></div>
+        <div class="cal-cell cal-cell-nowork"><div class="cal-cell-day">12</div></div>
+        <div class="cal-cell cal-cell-nowork"><div class="cal-cell-day">13</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">14</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">15</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">16</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">17</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">18</div></div>
+        <div class="cal-cell cal-cell-nowork"><div class="cal-cell-day">19</div></div>
+        <div class="cal-cell cal-cell-nowork"><div class="cal-cell-day">20</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">21</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">22</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">23</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">24</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">25</div></div>
+        <div class="cal-cell cal-cell-nowork"><div class="cal-cell-day">26</div></div>
+        <div class="cal-cell cal-cell-nowork"><div class="cal-cell-day">27</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">28</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">29</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">30</div></div>
       </div>
     </div>
 
@@ -608,43 +680,54 @@ body::before {
       <div class="cal-grid">
         <div class="cal-cell cal-cell-empty"></div>
         <div class="cal-cell cal-cell-empty"></div>
-        <div class="cal-cell cal-cell-done">1<span class="cal-cell-count">2</span></div>
-        <div class="cal-cell cal-cell-done-multi">2<span class="cal-cell-count">3</span></div>
-        <div class="cal-cell cal-cell-done">3<span class="cal-cell-count">1</span></div>
-        <div class="cal-cell cal-cell-nowork">4</div>
-        <div class="cal-cell cal-cell-nowork">5</div>
-        <div class="cal-cell cal-cell-absent">6</div>
-        <div class="cal-cell cal-cell-skip">7</div>
-        <div class="cal-cell cal-cell-done-multi">8<span class="cal-cell-count">2</span></div>
-        <div class="cal-cell cal-cell-today">9</div>
-        <div class="cal-cell cal-cell-future">10</div>
-        <div class="cal-cell cal-cell-future">11</div>
-        <div class="cal-cell cal-cell-nowork">12</div>
-        <div class="cal-cell cal-cell-nowork">13</div>
-        <div class="cal-cell cal-cell-future">14</div>
-        <div class="cal-cell cal-cell-future">15</div>
-        <div class="cal-cell cal-cell-future">16</div>
-        <div class="cal-cell cal-cell-future">17</div>
-        <div class="cal-cell cal-cell-future">18</div>
-        <div class="cal-cell cal-cell-nowork">19</div>
-        <div class="cal-cell cal-cell-nowork">20</div>
-        <div class="cal-cell cal-cell-future">21</div>
-        <div class="cal-cell cal-cell-future">22</div>
-        <div class="cal-cell cal-cell-future">23</div>
-        <div class="cal-cell cal-cell-future">24</div>
-        <div class="cal-cell cal-cell-future">25</div>
-        <div class="cal-cell cal-cell-nowork">26</div>
-        <div class="cal-cell cal-cell-nowork">27</div>
-        <div class="cal-cell cal-cell-future">28</div>
-        <div class="cal-cell cal-cell-future">29</div>
-        <div class="cal-cell cal-cell-future">30</div>
+        <div class="cal-cell cal-cell-done" onclick="showTip(event,'1/04',['La Spezia: 45','Empoli: 32'])">
+          <div class="cal-cell-day">1</div><div class="cal-cell-body"><div class="cal-cell-num">2</div></div>
+          <div class="cal-cell-bars"><div class="cal-cell-bar" style="background:var(--accent)"></div><div class="cal-cell-bar" style="background:var(--green)"></div></div>
+        </div>
+        <div class="cal-cell cal-cell-done-multi" onclick="showTip(event,'2/04',['La Spezia: 48','Empoli: 40','Brescia: 12'])">
+          <div class="cal-cell-day">2</div><div class="cal-cell-body"><div class="cal-cell-num">3</div></div>
+          <div class="cal-cell-bars"><div class="cal-cell-bar" style="background:var(--accent)"></div><div class="cal-cell-bar" style="background:var(--green)"></div><div class="cal-cell-bar" style="background:var(--orange)"></div></div>
+        </div>
+        <div class="cal-cell cal-cell-done" onclick="showTip(event,'3/04',['La Spezia: 42'])">
+          <div class="cal-cell-day">3</div><div class="cal-cell-body"><div class="cal-cell-num">1</div></div>
+          <div class="cal-cell-bars"><div class="cal-cell-bar" style="background:var(--accent)"></div></div>
+        </div>
+        <div class="cal-cell cal-cell-nowork"><div class="cal-cell-day">4</div></div>
+        <div class="cal-cell cal-cell-nowork"><div class="cal-cell-day">5</div></div>
+        <div class="cal-cell cal-cell-absent"><div class="cal-cell-day">6</div><div class="cal-cell-body"><div style="font-size:0.6rem;opacity:0.6">—</div></div></div>
+        <div class="cal-cell cal-cell-skip"><div class="cal-cell-day">7</div><div class="cal-cell-body"><div style="font-size:0.9rem">⚠️</div></div></div>
+        <div class="cal-cell cal-cell-done-multi" onclick="showTip(event,'8/04',['La Spezia: 42','Empoli: 35'])">
+          <div class="cal-cell-day">8</div><div class="cal-cell-body"><div class="cal-cell-num">2</div></div>
+          <div class="cal-cell-bars"><div class="cal-cell-bar" style="background:var(--accent)"></div><div class="cal-cell-bar" style="background:var(--green)"></div></div>
+        </div>
+        <div class="cal-cell cal-cell-today"><div class="cal-cell-day">9</div><div class="cal-cell-body"><div style="font-size:0.6rem;font-weight:600;color:var(--accent)">OGGI</div></div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">10</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">11</div></div>
+        <div class="cal-cell cal-cell-nowork"><div class="cal-cell-day">12</div></div>
+        <div class="cal-cell cal-cell-nowork"><div class="cal-cell-day">13</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">14</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">15</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">16</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">17</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">18</div></div>
+        <div class="cal-cell cal-cell-nowork"><div class="cal-cell-day">19</div></div>
+        <div class="cal-cell cal-cell-nowork"><div class="cal-cell-day">20</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">21</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">22</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">23</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">24</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">25</div></div>
+        <div class="cal-cell cal-cell-nowork"><div class="cal-cell-day">26</div></div>
+        <div class="cal-cell cal-cell-nowork"><div class="cal-cell-day">27</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">28</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">29</div></div>
+        <div class="cal-cell cal-cell-future"><div class="cal-cell-day">30</div></div>
       </div>
       <div class="cal-legend">
-        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--green)"></div>Fatto</div>
-        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(0,230,118,0.35)"></div>Multi</div>
-        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--yellow)"></div>Saltata</div>
-        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--text-muted);opacity:0.4"></div>Assente</div>
-        <div class="cal-legend-item"><div class="cal-legend-dot" style="border:1px dashed var(--text-muted);background:none"></div>Futura</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(0,230,118,0.15)"></div>Fatto</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(255,214,0,0.15);border:1px solid rgba(255,214,0,0.2)"></div>Saltata</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(255,255,255,0.03)"></div>Assente</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="border:1px dashed rgba(255,255,255,0.1);background:none"></div>Futura</div>
       </div>
     </div>
 
@@ -747,7 +830,33 @@ body::before {
   </div>
 </div>
 
+<div class="cal-tooltip" id="cal-tooltip"></div>
+
 <script>
+// Tooltip on tap
+function showTip(e, title, rows) {
+  e.stopPropagation();
+  const tip = document.getElementById('cal-tooltip');
+  let html = '<div class="cal-tooltip-title">' + title + '</div>';
+  rows.forEach(r => {
+    const parts = r.split(':');
+    if (parts.length === 2) {
+      html += '<div class="cal-tooltip-row"><span class="cal-tooltip-cant">' + parts[0].trim() + '</span><span class="cal-tooltip-val">' + parts[1].trim() + '</span></div>';
+    } else {
+      html += '<div style="color:var(--text-secondary)">' + r + '</div>';
+    }
+  });
+  tip.innerHTML = html;
+  tip.classList.add('show');
+  // Position near tap
+  const rect = e.currentTarget.getBoundingClientRect();
+  tip.style.left = Math.min(rect.left, window.innerWidth - 270) + 'px';
+  tip.style.top = (rect.bottom + 8) + 'px';
+}
+document.addEventListener('click', () => {
+  document.getElementById('cal-tooltip').classList.remove('show');
+});
+
 function showPage(id, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
