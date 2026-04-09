@@ -178,22 +178,43 @@ body::before {
 }
 .btn-exit:hover { border-color:var(--accent); color:var(--accent); }
 
-.hero-stats {
-  display:grid; grid-template-columns:1fr 1fr 1fr; gap:1px;
-  background:var(--border); border-radius:var(--radius-lg); overflow:hidden; margin-bottom:24px; position:relative;
+/* Hero Tonight */
+.hero-tonight {
+  background:var(--bg-glass); border:1px solid var(--border-light); border-radius:var(--radius-lg);
+  padding:18px 20px; margin-bottom:24px; position:relative; overflow:hidden;
 }
-.hero-stats::before {
-  content:''; position:absolute; inset:-1px; border-radius:var(--radius-lg); padding:1px;
-  background:linear-gradient(135deg, rgba(0,212,255,0.3), rgba(0,212,255,0.05), rgba(0,212,255,0.15));
-  -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none; z-index:1;
+.hero-tonight::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg, var(--accent), #0088ff, transparent);
 }
-.hero-stat { background:var(--bg-base); padding:20px 12px; text-align:center; }
-.hero-stat-value {
-  font-family:var(--font-mono); font-weight:800; font-size:2.6rem; line-height:1;
-  color:var(--accent); text-shadow:0 0 30px var(--accent-glow), 0 0 60px rgba(0,212,255,0.08);
+.hero-tonight-label {
+  font-size:0.6rem; font-weight:400; color:var(--text-muted); text-transform:uppercase;
+  letter-spacing:0.12em; margin-bottom:8px;
 }
-.hero-stat-label { font-size:0.55rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.1em; margin-top:8px; font-weight:300; }
+.hero-tonight-count {
+  font-family:var(--font-mono); font-weight:800; font-size:2.4rem; line-height:1;
+  color:var(--accent); text-shadow:0 0 30px var(--accent-glow);
+}
+.hero-tonight-count-label {
+  font-family:var(--font-body); font-size:1rem; font-weight:400; color:var(--text-secondary);
+  margin-left:4px;
+}
+.hero-tonight-list { margin-top:14px; display:flex; flex-direction:column; gap:6px; }
+.hero-tonight-item {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:8px 12px; background:rgba(255,255,255,0.025); border-radius:var(--radius-sm);
+}
+.hero-tonight-name { font-weight:600; font-size:0.85rem; }
+.hero-tonight-time {
+  font-family:var(--font-mono); font-weight:700; font-size:0.8rem; color:var(--accent);
+}
+/* Variante: nessuna notte stasera */
+.hero-tonight-next {
+  margin-top:6px; font-size:0.8rem; color:var(--text-secondary);
+}
+.hero-tonight-next strong {
+  color:var(--text-primary); font-weight:600;
+}
 
 .cantieri-list { display:flex; flex-direction:column; gap:6px; }
 .card-row {
@@ -380,18 +401,19 @@ body::before {
       <button class="btn-exit">Esci</button>
     </div>
 
-    <div class="hero-stats anim d2">
-      <div class="hero-stat">
-        <div class="hero-stat-value">6</div>
-        <div class="hero-stat-label">Attivi</div>
-      </div>
-      <div class="hero-stat">
-        <div class="hero-stat-value">221</div>
-        <div class="hero-stat-label">Saldature</div>
-      </div>
-      <div class="hero-stat">
-        <div class="hero-stat-value" style="color:var(--red);text-shadow:0 0 20px var(--red-glow)">1g</div>
-        <div class="hero-stat-label">Deadline</div>
+    <!-- Hero: cosa fai stasera -->
+    <div class="hero-tonight anim d2">
+      <div class="hero-tonight-label">Stasera</div>
+      <div class="hero-tonight-count">2 <span class="hero-tonight-count-label">notti</span></div>
+      <div class="hero-tonight-list">
+        <div class="hero-tonight-item">
+          <span class="hero-tonight-name">La Spezia - Arcola</span>
+          <span class="hero-tonight-time">22:30</span>
+        </div>
+        <div class="hero-tonight-item">
+          <span class="hero-tonight-name">Empoli - San Miniato</span>
+          <span class="hero-tonight-time">23:00</span>
+        </div>
       </div>
     </div>
 
