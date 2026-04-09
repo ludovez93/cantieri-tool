@@ -376,6 +376,51 @@ body::before {
 .result-big-label { font-size:0.8rem; color:var(--text-secondary); }
 .result-row { display:flex; align-items:center; gap:8px; padding:6px 0; font-size:0.85rem; border-top:1px solid var(--border); }
 
+/* Detail status line */
+.detail-status {
+  background:var(--bg-glass); border:1px solid var(--border-light); border-radius:var(--radius-lg);
+  padding:16px 18px; margin-bottom:20px; position:relative; overflow:hidden;
+}
+.detail-status::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg, var(--red), var(--orange), transparent);
+}
+.detail-status-row {
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+}
+.ds-item { font-size:0.85rem; color:var(--text-secondary); }
+.ds-val { font-family:var(--font-mono); font-weight:800; font-size:1rem; }
+.ds-green { color:var(--green); }
+.ds-red { color:var(--red); text-shadow:0 0 10px var(--red-glow); }
+.ds-dim { color:var(--text-muted); font-family:var(--font-mono); font-weight:400; }
+.ds-sep {
+  width:1px; height:14px; background:var(--border-light); flex-shrink:0;
+}
+.detail-status-sub {
+  margin-top:10px; padding-top:10px; border-top:1px solid var(--border);
+  font-size:0.75rem; color:var(--text-muted);
+}
+.detail-status-sub strong {
+  color:var(--text-secondary); font-family:var(--font-mono); font-weight:600;
+}
+
+/* Next nights with meteo */
+.next-night {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:12px 14px; background:var(--bg-glass); border:1px solid var(--border);
+  border-radius:var(--radius-sm); margin-bottom:6px; transition:all var(--transition);
+}
+.next-night-warn {
+  border-color:rgba(255,214,0,0.15); background:rgba(255,214,0,0.03);
+}
+.nn-left { flex:1; }
+.nn-date { font-weight:600; font-size:0.85rem; }
+.nn-sub { font-size:0.7rem; color:var(--text-muted); margin-top:1px; }
+.nn-meteo {
+  font-size:0.9rem; text-align:right; white-space:nowrap;
+  font-family:var(--font-mono); font-weight:600;
+}
+
 .mb16 { margin-bottom:16px; }
 .mb20 { margin-bottom:20px; }
 .mb24 { margin-bottom:24px; }
@@ -563,30 +608,28 @@ body::before {
     <div class="page-header anim d1">
       <button class="back-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
       <h1>La Spezia - Arcola</h1>
-      <span class="badge-inline">URG</span>
     </div>
 
-    <div class="stat-ticker anim d2">
-      <div class="stat-ticker-item"><div class="stat-ticker-value" style="color:var(--green)">5</div><div class="stat-ticker-label">Notti</div></div>
-      <div class="stat-ticker-item"><div class="stat-ticker-value" style="color:var(--accent)">221</div><div class="stat-ticker-label">Saldature</div></div>
-      <div class="stat-ticker-item"><div class="stat-ticker-value" style="color:var(--red)">5</div><div class="stat-ticker-label">Difetti</div></div>
-      <div class="stat-ticker-item"><div class="stat-ticker-value" style="color:var(--yellow)">0</div><div class="stat-ticker-label">Saltate</div></div>
-    </div>
-
-    <div class="hero-row anim d3">
-      <div class="hero-card hero-card-urgent">
-        <div class="hero-card-label">Deadline</div>
-        <div class="hero-card-value">10/04</div>
+    <!-- Situazione: una riga che dice tutto -->
+    <div class="detail-status anim d2">
+      <div class="detail-status-row">
+        <span class="ds-item"><span class="ds-val ds-green">4</span>/<span class="ds-dim">10</span> notti</span>
+        <span class="ds-sep"></span>
+        <span class="ds-item">deadline <span class="ds-val ds-red">tra 1g</span></span>
+        <span class="ds-sep"></span>
+        <span class="ds-item"><span class="ds-val ds-red">5</span> difetti</span>
       </div>
-      <div class="hero-card">
-        <div class="hero-card-label">Ultimo km</div>
-        <div class="hero-card-value" style="font-size:0.85rem;">P: 168+200</div>
+      <div class="detail-status-sub">
+        Ultimo km: <strong>P: 168+200</strong> &middot; Notturno 22:30-05:00
       </div>
     </div>
 
-    <!-- Calendario cantiere (singolo — no barre multi, solo stato) -->
-    <div class="anim d4 mb24">
-      <div class="section-label">Aprile 2026</div>
+    <!-- Calendario cantiere -->
+    <div class="anim d3 mb24">
+      <div class="cal-header">
+        <div class="cal-month">Aprile 2026</div>
+        <div class="cal-nav"><button>&larr;</button><button>&rarr;</button></div>
+      </div>
       <div class="cal-weekdays">
         <div class="cal-weekday">L</div><div class="cal-weekday">M</div><div class="cal-weekday">M</div>
         <div class="cal-weekday">G</div><div class="cal-weekday">V</div><div class="cal-weekday">S</div><div class="cal-weekday">D</div>
@@ -594,23 +637,25 @@ body::before {
       <div class="cal-grid">
         <div class="cal-cell cal-cell-empty"></div>
         <div class="cal-cell cal-cell-empty"></div>
-        <div class="cal-cell cal-cell-done" onclick="showTip(event,'1/04',['45 saldature'])">
+        <div class="cal-cell cal-cell-done" onclick="showTip(event,'1/04',['45 saldature','Squadra: Ludo+Cri'])">
           <div class="cal-cell-day">1</div><div class="cal-cell-body"><div class="cal-cell-num" style="color:var(--green)">45</div></div>
         </div>
-        <div class="cal-cell cal-cell-done" onclick="showTip(event,'2/04',['48 saldature'])">
+        <div class="cal-cell cal-cell-done" onclick="showTip(event,'2/04',['48 saldature','Squadra: Ludo+Cri'])">
           <div class="cal-cell-day">2</div><div class="cal-cell-body"><div class="cal-cell-num" style="color:var(--green)">48</div></div>
         </div>
-        <div class="cal-cell cal-cell-done" onclick="showTip(event,'3/04',['42 saldature'])">
+        <div class="cal-cell cal-cell-done" onclick="showTip(event,'3/04',['42 saldature','Squadra: Ludo+Cri'])">
           <div class="cal-cell-day">3</div><div class="cal-cell-body"><div class="cal-cell-num" style="color:var(--green)">42</div></div>
         </div>
         <div class="cal-cell cal-cell-nowork"><div class="cal-cell-day">4</div></div>
         <div class="cal-cell cal-cell-nowork"><div class="cal-cell-day">5</div></div>
         <div class="cal-cell cal-cell-absent"><div class="cal-cell-day">6</div><div class="cal-cell-body"><div style="font-size:0.6rem;opacity:0.6">—</div></div></div>
-        <div class="cal-cell cal-cell-skip"><div class="cal-cell-day">7</div><div class="cal-cell-body"><div style="font-size:0.9rem">⚠️</div></div></div>
-        <div class="cal-cell cal-cell-done" onclick="showTip(event,'8/04',['42 saldature'])">
+        <div class="cal-cell cal-cell-skip" onclick="showTip(event,'7/04',['Saltata: pioggia'])">
+          <div class="cal-cell-day">7</div><div class="cal-cell-body"><div style="font-size:0.9rem">⚠️</div></div>
+        </div>
+        <div class="cal-cell cal-cell-done" onclick="showTip(event,'8/04',['42 saldature','Squadra: Ludo+Cri'])">
           <div class="cal-cell-day">8</div><div class="cal-cell-body"><div class="cal-cell-num" style="color:var(--green)">42</div></div>
         </div>
-        <div class="cal-cell cal-cell-today"><div class="cal-cell-day">9</div><div class="cal-cell-body"><div style="font-size:0.6rem;font-weight:600;color:var(--accent)">OGGI</div></div></div>
+        <div class="cal-cell cal-cell-today"><div class="cal-cell-day">9</div><div class="cal-cell-body"><div style="font-size:0.55rem;font-weight:700;color:var(--accent)">OGGI</div></div></div>
         <div class="cal-cell cal-cell-future"><div class="cal-cell-day">10</div></div>
         <div class="cal-cell cal-cell-future"><div class="cal-cell-day">11</div></div>
         <div class="cal-cell cal-cell-nowork"><div class="cal-cell-day">12</div></div>
@@ -635,36 +680,40 @@ body::before {
       </div>
     </div>
 
-    <div class="card-terminal anim d5">
-      <div class="term-row"><span class="term-label">Ultima notte</span><span class="term-value">8&rarr;9/04 &bull; 42 sald.</span></div>
-      <div class="term-row"><span class="term-label">Tipo</span><span class="term-value">Notturno</span></div>
-      <div class="term-row"><span class="term-label">Interruzione</span><span class="term-value">22:30-05:00</span></div>
+    <!-- Prossime notti + meteo insieme -->
+    <div class="section-label anim d4">Prossime notti</div>
+    <div class="anim d4 mb24">
+      <div class="next-night">
+        <div class="nn-left">
+          <div class="nn-date">Stasera 9&rarr;10/04</div>
+          <div class="nn-sub">22:30-05:00</div>
+        </div>
+        <div class="nn-meteo">☀️ 18° <span style="color:var(--text-muted);font-size:0.7rem">0mm</span></div>
+      </div>
+      <div class="next-night">
+        <div class="nn-left">
+          <div class="nn-date">Gio 10&rarr;11/04</div>
+          <div class="nn-sub">22:30-05:00</div>
+        </div>
+        <div class="nn-meteo">⛅ 16° <span style="color:var(--text-muted);font-size:0.7rem">0mm</span></div>
+      </div>
+      <div class="next-night next-night-warn">
+        <div class="nn-left">
+          <div class="nn-date">Ven 11&rarr;12/04</div>
+          <div class="nn-sub">22:30-05:00</div>
+        </div>
+        <div class="nn-meteo">🌧️ 13° <span style="color:var(--yellow);font-size:0.7rem;font-weight:600">8mm</span></div>
+      </div>
     </div>
 
-    <div class="section-label anim d5">Meteo</div>
-    <div class="meteo-strip anim d5">
-      <div class="meteo-card"><div class="meteo-day-name">Gio</div><div class="meteo-icon">☀️</div><div class="meteo-temp">18°</div><div class="meteo-rain-bar" style="height:0"></div></div>
-      <div class="meteo-card"><div class="meteo-day-name">Ven</div><div class="meteo-icon">⛅</div><div class="meteo-temp">16°</div><div class="meteo-rain-bar" style="height:0"></div></div>
-      <div class="meteo-card"><div class="meteo-day-name">Sab</div><div class="meteo-icon">🌧️</div><div class="meteo-temp">13°</div><div class="meteo-rain-bar" style="height:14px"></div></div>
-      <div class="meteo-card"><div class="meteo-day-name">Dom</div><div class="meteo-icon">🌧️</div><div class="meteo-temp">12°</div><div class="meteo-rain-bar" style="height:22px"></div></div>
-      <div class="meteo-card"><div class="meteo-day-name">Lun</div><div class="meteo-icon">⛅</div><div class="meteo-temp">15°</div><div class="meteo-rain-bar" style="height:4px"></div></div>
-    </div>
-
-    <div class="section-label anim d6">Difetti aperti (5)</div>
-    <div class="anim d6">
+    <!-- Difetti aperti -->
+    <div class="section-label anim d5">Difetti aperti (5)</div>
+    <div class="anim d5 mb24">
       <div class="difetto-card"><div><div class="dif-km">165+640 SX</div><div class="dif-meta">08/04</div></div><div class="dif-badge">4212</div></div>
       <div class="difetto-card"><div><div class="dif-km">166+132 DX</div><div class="dif-meta">08/04</div></div><div class="dif-badge">4112</div></div>
     </div>
 
-    <div class="section-label anim d7" style="margin-top:24px">Agenda</div>
-    <div class="timeline anim d7">
-      <div class="timeline-item"><div class="timeline-dot timeline-dot-muted"></div><span class="tl-date">9&rarr;10/04</span><span class="tl-status tl-status-plan">🌙 Programmata</span></div>
-      <div class="timeline-item"><div class="timeline-dot timeline-dot-green"></div><span class="tl-date">8&rarr;9/04</span><span class="tl-status tl-status-done">✅ 42 sald.</span></div>
-      <div class="timeline-item"><div class="timeline-dot timeline-dot-green"></div><span class="tl-date">7&rarr;8/04</span><span class="tl-status tl-status-done">✅ 38 sald.</span></div>
-      <div class="timeline-item"><div class="timeline-dot timeline-dot-yellow"></div><span class="tl-date">Lun 7/04</span><span class="tl-status tl-status-skip">🌧️ Pioggia</span></div>
-    </div>
-
-    <button class="btn-cta anim d8">LOG NOTTE</button>
+    <button class="btn-cta anim d6">LOG NOTTE</button>
   </div>
 
   <!-- ═════ PANORAMICA ═════ -->
